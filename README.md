@@ -48,7 +48,7 @@ See the [quickstart guide](https://antfly.io/docs/guides/quickstart) for a full 
 
 | Language | Package | Source |
 |----------|---------|--------|
-| Go | `github.com/antflydb/antfly/pkg/client` | [`pkg/client`](pkg/client) |
+| Go | `github.com/Nabeel-Farooq/antfly/pkg/client` | [`pkg/client`](pkg/client) |
 | TypeScript | `@antfly/sdk` | [`ts/packages/sdk`](ts/packages/sdk) |
 | Python | `antfly` | [`py/`](py/) |
 | React | `@antfly/components` | [`ts/packages/components`](ts/packages/components) |
@@ -97,11 +97,6 @@ Critical distributed protocols are formally specified and model-checked with [TL
 - [AntflySnapshotTransfer](specs/tla/AntflySnapshotTransfer.tla) — Raft snapshot transfer
 - [AntflyShardSplit](specs/tla/AntflyShardSplit.tla) — shard split coordination
 
-## Community
-
-Join the [Discord](https://discord.gg/zrdjguy84P) for support, discussion, and updates.
-
-Interested in contributing? See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
