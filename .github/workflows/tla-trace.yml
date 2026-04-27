@@ -1,0 +1,71 @@
+name: TLA+ Trace Validation
+
+on:
+  schedule:
+    # Weekly on Sunday at 03:00 UTC
+    - cron: "0 3 * * 0"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trace-validate:
+    runs-on: codebuild-GitHubActionsRunnerAntflyAntflyDB-${{ github.run_id }}-${{ github.run_attempt }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+          cache: false
+
+      - name: Set Go experiment
+        run: echo "GOEXPERIMENT=simd" >> $GITHUB_ENV
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Download TLA+ tools
+        run: make tla-tools
+
+      - name: Build with TLA+ tracing
+        run: go build -tags with_tla ./cmd/antfly
+
+      - name: Run transaction harness once and capture traces
+        run: |
+          set -euo pipefail
+          ANTFLY_SIM_DEBUG_LOG=1 go test -tags with_tla -run TestHarness_Transaction -v ./src/sim/ 2>&1 | tee /tmp/trace-test.log
+
+      - name: Extract raft traces
+        run: |
+          set -euo pipefail
+          python3 scripts/extract-tla-traces.py raft /tmp/trace-test.log /tmp/raft-traces
+          ls -1 /tmp/raft-traces/*.ndjson >/tmp/raft-trace-files.txt
+          echo "Raft trace files: $(wc -l < /tmp/raft-trace-files.txt)"
+
+      - name: Validate raft traces
+        run: |
+          set -euo pipefail
+          test -s /tmp/raft-trace-files.txt
+          make tla-trace-raft TRACE_FILES="$(tr '\n' ' ' </tmp/raft-trace-files.txt)"
+
+      - name: Extract transaction traces
+        run: |
+          set -euo pipefail
+          python3 scripts/extract-tla-traces.py txn /tmp/trace-test.log /tmp/txn-trace.ndjson
+          echo "Transaction trace lines: $(wc -l < /tmp/txn-trace.ndjson)"
+
+      - name: Validate transaction traces
+        run: |
+          set -euo pipefail
+          test -s /tmp/txn-trace.ndjson
+          make tla-trace-txn TRACE_FILES=/tmp/txn-trace.ndjson
