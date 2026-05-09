@@ -1,19 +1,15 @@
-"""Exception classes for Antfly SDK."""
+"""Custom exception hierarchy for the Antfly SDK."""
+
+from __future__ import annotations
 
 
-class AntflyException(Exception):
-    """Base exception for Antfly SDK."""
-
-    pass
+class AntflyError(Exception):
+    """Base exception for all Antfly SDK errors."""
 
 
-class AntflyConnectionError(AntflyException):
-    """Raised when connection to Antfly server fails."""
-
-    pass
+class AntflyConnectionError(AntflyError):
+    """Raised when the SDK cannot connect to the Antfly server."""
 
 
-class AntflyAuthError(AntflyException):
-    """Raised when authentication fails."""
-
-    pass
+class AntflyAuthError(AntflyError):
+    """Raised when authentication or authorization fails."""
